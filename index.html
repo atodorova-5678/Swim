@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Swim or Skip? &mdash; Santa Cruz Wharf</title>
+  <meta name="description" content="One button. Live swim conditions at the Santa Cruz Wharf: water temp, swell, wind, tide, and an honest verdict." />
+  <meta name="theme-color" content="#f0f5f6" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#101718" media="(prefers-color-scheme: dark)" />
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f0f5f6;
+      --waves: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='120'%3E%3Cpath d='M0 30 Q 35 18 70 30 T 140 30 T 210 30 T 280 30' fill='none' stroke='%23155e73' stroke-opacity='0.08' stroke-width='1.2'/%3E%3Cpath d='M0 70 Q 35 58 70 70 T 140 70 T 210 70 T 280 70' fill='none' stroke='%23155e73' stroke-opacity='0.06' stroke-width='1.2'/%3E%3Cpath d='M0 110 Q 35 98 70 110 T 140 110 T 210 110 T 280 110' fill='none' stroke='%23155e73' stroke-opacity='0.08' stroke-width='1.2'/%3E%3C/svg%3E");
+      --card: #ffffff;
+      --text: #16262b;
+      --muted: #5e767e;
+      --accent: #0f5468;
+      --accent-soft: #e2eef1;
+      --btn-text: #ffffff;
+      --border: #dfe8ea;
+      --chip: #ecf2f3;
+      --good: #1c7a4d;
+      --meh: #8a6d1f;
+      --bad: #a85f55;
+      --note-bg: #f6f1e0;
+      --note-border: #e8ddb6;
+      --note-text: #6d5c22;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #101718;
+        --waves: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='120'%3E%3Cpath d='M0 30 Q 35 18 70 30 T 140 30 T 210 30 T 280 30' fill='none' stroke='%239fd2e0' stroke-opacity='0.06' stroke-width='1.2'/%3E%3Cpath d='M0 70 Q 35 58 70 70 T 140 70 T 210 70 T 280 70' fill='none' stroke='%239fd2e0' stroke-opacity='0.045' stroke-width='1.2'/%3E%3Cpath d='M0 110 Q 35 98 70 110 T 140 110 T 210 110 T 280 110' fill='none' stroke='%239fd2e0' stroke-opacity='0.06' stroke-width='1.2'/%3E%3C/svg%3E");
+        --card: #182225;
+        --text: #e3ecee;
+        --muted: #8ea6ad;
+        --accent: #6fc3d8;
+        --accent-soft: #1d2f34;
+        --btn-text: #0b2229;
+        --border: #263438;
+        --chip: #1f2c30;
+        --good: #6fcb99;
+        --meh: #d2b45e;
+        --bad: #cf8b80;
+        --note-bg: #292515;
+        --note-border: #46402a;
+        --note-text: #d3c488;
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background-color: var(--bg);
+      background-image: var(--waves);
+      background-size: 280px 120px;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: max(44px, env(safe-area-inset-top)) 18px max(64px, env(safe-area-inset-bottom));
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .tagline {
+      color: var(--muted);
+      font-size: 0.92rem;
+      text-align: center;
+      max-width: 340px;
+      line-height: 1.55;
+    }
+
+    .go-btn {
+      margin-top: 30px;
+      background: var(--accent);
+      color: var(--btn-text);
+      border: none;
+      border-radius: 999px;
+      font-size: 1.05rem;
+      font-weight: 650;
+      padding: 15px 34px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(15, 84, 104, 0.25);
+      transition: transform 0.12s ease;
+    }
+    .go-btn:active { transform: scale(0.96); }
+    .go-btn:disabled { opacity: 0.65; cursor: wait; }
+
+    .loading {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      text-align: center;
+      min-height: 1.4em;
+    }
+
+    #report { width: 100%; max-width: 480px; display: none; flex-direction: column; gap: 14px; margin-top: 28px; }
+
+    .verdict {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px 22px;
+      text-align: center;
+    }
+    .verdict .word {
+      font-size: 1.9rem;
+      font-weight: 750;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .verdict .word.good { color: var(--good); }
+    .verdict .word.meh { color: var(--meh); }
+    .verdict .word.bad { color: var(--bad); }
+    .verdict .why { color: var(--muted); font-size: 0.94rem; line-height: 1.5; }
+    .verdict .stamp { margin-top: 12px; font-size: 0.78rem; color: var(--muted); }
+
+    .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 420px) { .cards { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+    }
+    .card .label {
+      font-size: 0.74rem;
+      font-weight: 650;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .card .value { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; }
+    .card .sub { margin-top: 5px; color: var(--muted); font-size: 0.84rem; line-height: 1.45; }
+    .card .sub b { color: var(--text); font-weight: 600; }
+
+    .card.tide { grid-column: 1 / -1; }
+    .tide-events { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .tide-chip {
+      background: var(--chip);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 0.82rem;
+      font-weight: 550;
+    }
+
+    .note {
+      background: var(--note-bg);
+      border: 1px solid var(--note-border);
+      border-radius: 14px;
+      padding: 12px 15px;
+      color: var(--note-text);
+      font-size: 0.84rem;
+      line-height: 1.5;
+    }
+
+    footer {
+      margin-top: 34px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      text-align: center;
+      line-height: 1.7;
+      max-width: 380px;
+    }
+    footer a { color: inherit; }
+  </style>
+</head>
+<body>
+  <h1>🌊 Swim or Skip?</h1>
+  <p class="tagline" id="tagline"></p>
+
+  <button class="go-btn" id="goBtn"></button>
+  <p class="loading" id="loading"></p>
+
+  <div id="report">
+    <div class="verdict">
+      <div class="word" id="verdictWord"></div>
+      <div class="why" id="verdictWhy"></div>
+      <div class="stamp" id="stamp"></div>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="label">Water</div>
+        <div class="value" id="waterTemp"></div>
+        <div class="sub" id="wetsuit"></div>
+      </div>
+      <div class="card">
+        <div class="label">Swell</div>
+        <div class="value" id="swell"></div>
+        <div class="sub" id="swellSub"></div>
+      </div>
+      <div class="card">
+        <div class="label">Wind</div>
+        <div class="value" id="wind"></div>
+        <div class="sub" id="windSub"></div>
+      </div>
+      <div class="card">
+        <div class="label">Sun &amp; sky</div>
+        <div class="value" id="air"></div>
+        <div class="sub" id="airSub"></div>
+      </div>
+      <div class="card tide">
+        <div class="label">Tide</div>
+        <div class="value" id="tideNow"></div>
+        <div class="tide-events" id="tideEvents"></div>
+      </div>
+    </div>
+
+    <div class="note" id="funNote"></div>
+  </div>
+
+  <footer>
+    Conditions at the Santa Cruz Wharf / Cowell Beach (36.957, &minus;122.017).
+    Waves &amp; weather: Open&#8209;Meteo &middot; Tides: NOAA station 9413745.<br />
+    This app knows waves, not bacteria &mdash; after a big rain, let the ocean rinse itself for a few days.
+    Not a lifeguard. Your eyes outrank this page.
+  </footer>
+
+  <script>
+    const WHARF = { lat: 36.9573, lon: -122.0173 };
+    const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+    const taglines = [
+      "One button. One honest answer about the water at the wharf.",
+      "Should you swim at Cowell right now? Let's find out.",
+      "Water temp, swell, wind, tide. Then you decide (we'll nudge).",
+      "For people who think 58°F is an acceptable bath."
+    ];
+
+    const buttonCopies = [
+      "Check the water",
+      "Swim or skip?",
+      "Ask the ocean",
+      "How cold is it really?",
+      "Read the bay"
+    ];
+
+    const loadingLines = [
+      "Dipping a toe in the data…",
+      "Asking a nearby sea lion…",
+      "Squinting at the horizon…",
+      "Counting the kelp…",
+      "Interviewing the tide…"
+    ];
+
+    const funNotes = [
+      "The classic wharf loop is about a mile of cold, kelpy glory. The sea lions under the pier will judge your stroke.",
+      "Local rule: if the surfers at Cowell look bored, the swimmers are happy.",
+      "Cold shock is real — get in slow, breathe out, and give it two minutes before deciding you hate it.",
+      "Best swims here are usually morning glass, before the afternoon northwest wind wakes up.",
+      "Swim parallel to the wharf and you always know where you are. That's the whole navigation briefing."
+    ];
+
+    // verdict copy per tier
+    const verdicts = {
+      good: {
+        cls: "good",
+        words: ["SEND IT 🏊", "GET IN", "SWIM. NOW.", "GLORIOUS"],
+      },
+      ok: {
+        cls: "meh",
+        words: ["DECENT DIP", "WORTH A DUNK", "PRETTY SWIMMABLE"],
+      },
+      gritty: {
+        cls: "meh",
+        words: ["HARDY SOULS ONLY", "BRING GRIT", "TYPE-2 FUN"],
+      },
+      bad: {
+        cls: "bad",
+        words: ["WATCH FROM THE WHARF", "HARD SKIP", "CHOWDER DAY ☕"],
+      },
+      night: {
+        cls: "bad",
+        words: ["THE OCEAN IS CLOSED 🌙", "NIGHT SWIM? NO."],
+      }
+    };
+
+    function cToF(c) { return c * 9 / 5 + 32; }
+
+    function wetsuitAdvice(f) {
+      if (f >= 65) return "<b>Trunks</b>, if you're brave. Springsuit if you're honest.";
+      if (f >= 60) return "<b>Springsuit</b> territory. Skins-swimmers will brag about it.";
+      if (f >= 55) return "<b>Full 4/3</b>. Hood optional, whining permitted.";
+      return "<b>4/3 + hood + booties</b> + a strong sense of purpose.";
+    }
+
+    function swellFeel(ft) {
+      if (ft <= 2) return "Basically a pool with ambition.";
+      if (ft <= 3.5) return "A little texture. Time your entry between sets.";
+      if (ft <= 5) return "Lumpy. Expect a free saltwater neti pot.";
+      return "Washing-machine mode. This is a spectator day.";
+    }
+
+    function windFeel(mph) {
+      if (mph < 8) return "Glassy-ish. This is the good stuff.";
+      if (mph < 13) return "A bit of chop, nothing personal.";
+      if (mph < 18) return "Whitecaps incoming. Breathe to your sheltered side.";
+      return "The bay is being exfoliated. Skip it.";
+    }
+
+    function dirArrow(deg) {
+      const dirs = ["N","NE","E","SE","S","SW","W","NW"];
+      return dirs[Math.round(deg / 45) % 8];
+    }
+
+    function fmtTime(d) {
+      return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    }
+
+    function computeVerdict(waveFt, windMph, waterF, isDaylight) {
+      if (!isDaylight) return { tier: "night", why: "The sun is off duty. Lifeguards, visibility, and common sense agree: come back in daylight." };
+      let score = 0;
+      const reasons = [];
+      if (waveFt <= 2) { score += 2; reasons.push("small swell"); }
+      else if (waveFt <= 3.5) { score += 1; reasons.push("manageable swell"); }
+      else if (waveFt <= 5) { reasons.push("lumpy swell"); }
+      else { score -= 2; reasons.push("big swell"); }
+
+      if (windMph < 8) { score += 2; reasons.push("light wind"); }
+      else if (windMph < 13) { score += 1; reasons.push("moderate wind"); }
+      else if (windMph < 18) { reasons.push("fresh wind"); }
+      else { score -= 2; reasons.push("howling wind"); }
+
+      if (waterF >= 60) { score += 1; reasons.push("almost-warm water"); }
+      else if (waterF < 55) { score -= 1; reasons.push("properly cold water"); }
+      else { reasons.push("classic Santa Cruz chill"); }
+
+      const why = reasons.join(", ") + ".";
+      if (score >= 4) return { tier: "good", why: "Conditions: " + why + " It doesn't get much better here." };
+      if (score >= 2) return { tier: "ok", why: "Conditions: " + why + " A solid, respectable swim." };
+      if (score >= 0) return { tier: "gritty", why: "Conditions: " + why + " Swimmable, but you'll earn it." };
+      return { tier: "bad", why: "Conditions: " + why + " The chowder on the wharf is excellent, though." };
+    }
+
+    async function fetchAll() {
+      const marineUrl = "https://marine-api.open-meteo.com/v1/marine?latitude=" + WHARF.lat +
+        "&longitude=" + WHARF.lon +
+        "&current=wave_height,wave_period,wave_direction,sea_surface_temperature" +
+        "&length_unit=imperial&temperature_unit=fahrenheit&timezone=America/Los_Angeles";
+      const weatherUrl = "https://api.open-meteo.com/v1/forecast?latitude=" + WHARF.lat +
+        "&longitude=" + WHARF.lon +
+        "&current=temperature_2m,wind_speed_10m,wind_direction_10m,uv_index,weather_code" +
+        "&daily=sunrise,sunset&forecast_days=1" +
+        "&wind_speed_unit=mph&temperature_unit=fahrenheit&timezone=America/Los_Angeles";
+      const now = new Date();
+      const ymd = now.getFullYear().toString() +
+        String(now.getMonth() + 1).padStart(2, "0") +
+        String(now.getDate()).padStart(2, "0");
+      const tideUrl = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?station=9413745" +
+        "&product=predictions&datum=MLLW&interval=hilo&units=english&time_zone=lst_ldt&format=json" +
+        "&begin_date=" + ymd + "&range=48";
+
+      const [marine, weather, tides] = await Promise.all([
+        fetch(marineUrl).then(r => r.json()),
+        fetch(weatherUrl).then(r => r.json()),
+        fetch(tideUrl).then(r => r.json())
+      ]);
+      return { marine, weather, tides };
+    }
+
+    function render({ marine, weather, tides }) {
+      const m = marine.current;
+      const w = weather.current;
+
+      let waterF = m.sea_surface_temperature;
+      if ((marine.current_units.sea_surface_temperature || "").includes("C")) waterF = cToF(waterF);
+
+      const waveFt = m.wave_height;
+      const windMph = w.wind_speed_10m;
+
+      const now = new Date();
+      const sunrise = new Date(weather.daily.sunrise[0]);
+      const sunset = new Date(weather.daily.sunset[0]);
+      const isDaylight = now >= sunrise && now <= sunset;
+
+      // verdict
+      const v = computeVerdict(waveFt, windMph, waterF, isDaylight);
+      const tier = verdicts[v.tier];
+      const wordEl = document.getElementById("verdictWord");
+      wordEl.textContent = rand(tier.words);
+      wordEl.className = "word " + tier.cls;
+      document.getElementById("verdictWhy").textContent = v.why;
+      document.getElementById("stamp").textContent = "Checked " + fmtTime(now) + " · Santa Cruz Wharf";
+
+      // cards
+      document.getElementById("waterTemp").textContent = Math.round(waterF) + "°F";
+      document.getElementById("wetsuit").innerHTML = wetsuitAdvice(waterF);
+
+      document.getElementById("swell").textContent = waveFt.toFixed(1) + " ft @ " + Math.round(m.wave_period) + "s";
+      document.getElementById("swellSub").innerHTML =
+        "From the <b>" + dirArrow(m.wave_direction) + "</b>. " + swellFeel(waveFt) +
+        " (Measured mid-bay — sheltered Cowell usually sees less.)";
+
+      document.getElementById("wind").textContent = Math.round(windMph) + " mph " + dirArrow(w.wind_direction_10m);
+      document.getElementById("windSub").textContent = windFeel(windMph);
+
+      document.getElementById("air").textContent = Math.round(w.temperature_2m) + "°F · UV " + Math.round(w.uv_index);
+      document.getElementById("airSub").innerHTML =
+        "Sun: <b>" + fmtTime(sunrise) + " – " + fmtTime(sunset) + "</b>." +
+        (w.uv_index >= 6 ? " Sunscreen is not optional." : "");
+
+      // tide: find previous + upcoming events
+      const events = (tides.predictions || []).map(p => ({
+        time: new Date(p.t.replace(" ", "T")),
+        ft: parseFloat(p.v),
+        type: p.type === "H" ? "High" : "Low"
+      }));
+      const prev = events.filter(e => e.time <= now).pop();
+      const next = events.filter(e => e.time > now).slice(0, 3);
+      let tideNow = "—";
+      if (prev && next.length) {
+        tideNow = (next[0].type === "High" ? "Rising ↑" : "Falling ↓");
+      } else if (next.length) {
+        tideNow = (next[0].type === "High" ? "Rising ↑" : "Falling ↓");
+      }
+      document.getElementById("tideNow").textContent = tideNow;
+      document.getElementById("tideEvents").innerHTML = next.map(e =>
+        '<span class="tide-chip">' + e.type + " " + e.ft.toFixed(1) + " ft · " +
+        fmtTime(e.time) + "</span>"
+      ).join("");
+
+      document.getElementById("funNote").textContent = rand(funNotes);
+      document.getElementById("report").style.display = "flex";
+    }
+
+    async function check() {
+      const btn = document.getElementById("goBtn");
+      const loading = document.getElementById("loading");
+      btn.disabled = true;
+      loading.textContent = rand(loadingLines);
+      const spinner = setInterval(() => { loading.textContent = rand(loadingLines); }, 1400);
+      try {
+        const data = await fetchAll();
+        render(data);
+        loading.textContent = "";
+        btn.textContent = "Check again";
+      } catch (err) {
+        loading.textContent = "The ocean is not answering (" + err.message + "). Try again in a moment.";
+      } finally {
+        clearInterval(spinner);
+        btn.disabled = false;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("tagline").textContent = rand(taglines);
+      const btn = document.getElementById("goBtn");
+      btn.textContent = rand(buttonCopies);
+      btn.addEventListener("click", check);
+    });
+  </script>
+</body>
+</html>

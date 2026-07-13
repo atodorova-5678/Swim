@@ -1,6 +1,6 @@
 # 🌊 Swim or Skip?
 
-One button. One honest answer about the water at the Santa Cruz Wharf.
+One button. Live swim conditions at the Santa Cruz Wharf.
 
 Live swim conditions for the wharf / Cowell Beach: water temperature, swell, wind,
 tide, sun — and a verdict, from **SEND IT 🏊** to **WATCH FROM THE WHARF**.
@@ -19,7 +19,7 @@ Data, fetched live on each check:
 
 Wave height is a mid-bay model value; sheltered Cowell usually sees less (the app says so).
 
-Not a lifeguard. Your eyes outrank this page.
+Not a lifeguard. Always check the water yourself.
 
 ## Sibling app
 

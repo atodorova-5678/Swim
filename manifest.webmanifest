@@ -1,7 +1,7 @@
 {
   "name": "Swim or Skip? — Santa Cruz Wharf",
   "short_name": "Swim or Skip",
-  "description": "One button. One honest answer about the water at the Santa Cruz Wharf.",
+  "description": "One button. Live swim conditions at the Santa Cruz Wharf.",
   "id": "./",
   "start_url": "./",
   "scope": "./",

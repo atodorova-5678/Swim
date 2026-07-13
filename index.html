@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Swim or Skip? &mdash; Santa Cruz Wharf</title>
-  <meta name="description" content="One button. Live swim conditions at the Santa Cruz Wharf: water temp, swell, wind, tide, and an honest verdict." />
+  <meta name="description" content="One button. Live swim conditions at the Santa Cruz Wharf: water temp, swell, wind, tide, and a verdict." />
   <meta name="theme-color" content="#f0f5f6" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#101718" media="(prefers-color-scheme: dark)" />
 
@@ -257,8 +257,8 @@
   <footer>
     Conditions at the Santa Cruz Wharf / Cowell Beach (36.957, &minus;122.017).
     Waves &amp; weather: Open&#8209;Meteo &middot; Tides: NOAA station 9413745.<br />
-    This app knows waves, not bacteria &mdash; after a big rain, let the ocean rinse itself for a few days.
-    Not a lifeguard. Your eyes outrank this page.
+    This app knows waves, not bacteria &mdash; after a big rain, give the ocean a few days.
+    Not a lifeguard. Always check the water yourself.
   </footer>
 
   <script>
@@ -266,7 +266,7 @@
     const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
     const taglines = [
-      "One button. One honest answer about the water at the wharf.",
+      "One button. One answer about the water at the wharf.",
       "Should you swim at Cowell right now? Let's find out.",
       "Water temp, swell, wind, tide. Then you decide (we'll nudge).",
       "For people who think 58°F is an acceptable bath."
@@ -323,7 +323,7 @@
     function cToF(c) { return c * 9 / 5 + 32; }
 
     function wetsuitAdvice(f) {
-      if (f >= 65) return "<b>Trunks</b>, if you're brave. Springsuit if you're honest.";
+      if (f >= 65) return "<b>Trunks</b>, if you're brave. Springsuit if you're not.";
       if (f >= 60) return "<b>Springsuit</b> territory. Skins-swimmers will brag about it.";
       if (f >= 55) return "<b>Full 4/3</b>. Hood optional, whining permitted.";
       return "<b>4/3 + hood + booties</b> + a strong sense of purpose.";
@@ -353,7 +353,7 @@
     }
 
     function computeVerdict(waveFt, windMph, waterF, isDaylight) {
-      if (!isDaylight) return { tier: "night", why: "The sun is off duty. Lifeguards, visibility, and common sense agree: come back in daylight." };
+      if (!isDaylight) return { tier: "night", why: "The sun is off duty. Come back in daylight." };
       let score = 0;
       const reasons = [];
       if (waveFt <= 2) { score += 2; reasons.push("small swell"); }

@@ -163,6 +163,24 @@
       font-weight: 550;
     }
 
+    .share-row { display: flex; justify-content: center; }
+    .share-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 7px 15px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+      font-family: inherit;
+    }
+    .share-btn:hover { color: var(--accent); border-color: var(--accent); }
+
     .note {
       background: var(--note-bg);
       border: 1px solid var(--note-border);
@@ -227,6 +245,13 @@
     </div>
 
     <div class="note" id="funNote"></div>
+
+    <div class="share-row">
+      <button class="share-btn" id="shareBtn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        Share conditions
+      </button>
+    </div>
   </div>
 
   <footer>
@@ -441,6 +466,60 @@
 
       document.getElementById("funNote").textContent = rand(funNotes);
       document.getElementById("report").style.display = "flex";
+
+      currentReport = {
+        verdict: wordEl.textContent,
+        checkedAt: fmtTime(now),
+        waterF: Math.round(waterF),
+        waveFt: waveFt.toFixed(1),
+        wavePeriod: Math.round(m.wave_period),
+        waveDir: dirArrow(m.wave_direction),
+        windMph: Math.round(windMph),
+        windDir: dirArrow(w.wind_direction_10m),
+        tide: tideNow.split(" ")[0].toLowerCase(),
+        nextTide: next.length ? next[0].type + " " + next[0].ft.toFixed(1) + " ft at " + fmtTime(next[0].time) : null
+      };
+    }
+
+    // ── Share ────────────────────────────────────────────────────────────────
+    let currentReport = null;
+
+    function buildShareText(r) {
+      return [
+        "🌊 Swim or Skip? — Santa Cruz Wharf",
+        r.verdict + " (checked " + r.checkedAt + ")",
+        "",
+        "💧 Water " + r.waterF + "°F",
+        "🌊 Swell " + r.waveFt + " ft @ " + r.wavePeriod + "s from the " + r.waveDir,
+        "💨 Wind " + r.windMph + " mph " + r.windDir,
+        ...(r.nextTide ? ["🌗 Tide " + r.tide + " — next: " + r.nextTide] : []),
+        "",
+        "https://atodorova-5678.github.io/Swim/"
+      ].join("\n");
+    }
+
+    async function shareReport() {
+      if (!currentReport) return;
+      const btn = document.getElementById("shareBtn");
+      const text = buildShareText(currentReport);
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ text });
+          return;
+        } catch (e) {
+          if (e.name === "AbortError") return;
+        }
+      }
+
+      try {
+        await navigator.clipboard.writeText(text);
+        const original = btn.innerHTML;
+        btn.textContent = "Copied!";
+        setTimeout(() => { btn.innerHTML = original; }, 2000);
+      } catch (e) {
+        prompt("Copy to share:", text);
+      }
     }
 
     async function check() {
@@ -467,6 +546,7 @@
       const btn = document.getElementById("goBtn");
       btn.textContent = rand(buttonCopies);
       btn.addEventListener("click", check);
+      document.getElementById("shareBtn").addEventListener("click", shareReport);
     });
 
     if ("serviceWorker" in navigator) {

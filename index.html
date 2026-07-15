@@ -154,6 +154,12 @@
     .card .sub b { color: var(--text); font-weight: 600; }
 
     .card.tide { grid-column: 1 / -1; }
+
+    .card.reward .value a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .card.reward .value a:hover { text-decoration: underline; }
     .tide-events { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
     .tide-chip {
       background: var(--chip);
@@ -244,6 +250,12 @@
       </div>
     </div>
 
+    <div class="card reward">
+      <div class="label" id="rewardLabel"></div>
+      <div class="value"><a id="rewardName" target="_blank" rel="noopener"></a></div>
+      <div class="sub" id="rewardNote"></div>
+    </div>
+
     <div class="note" id="funNote"></div>
 
     <div class="share-row">
@@ -295,6 +307,25 @@
       "Best swims here are usually morning glass, before the afternoon northwest wind wakes up.",
       "Swim parallel to the wharf and you always know where you are. That's the whole navigation briefing."
     ];
+
+    // post-swim coffee & donuts — all verified real, near the wharf
+    const rewards = [
+      { emoji: "☕", name: "The Picnic Basket", note: "Coffee, pastries, and Penny ice cream directly across from the wharf. Closed Tue–Wed.", mapQuery: "The Picnic Basket 125 Beach St Santa Cruz CA" },
+      { emoji: "☕", name: "Steamer Lane Supply", note: "Coffee and house-baked treats at Lighthouse Field — walk the cliff, watch the surfers, thaw out.", mapQuery: "Steamer Lane Supply 698 W Cliff Dr Santa Cruz CA" },
+      { emoji: "☕", name: "Shrine Coffee", note: "Garden coffeehouse on West Cliff with a tiled fountain and zero hurry. Open till 4.", mapQuery: "Shrine Coffee 544 W Cliff Dr Santa Cruz CA" },
+      { emoji: "☕", name: "Verve Coffee Roasters", note: "The downtown flagship on Pacific Ave — the 15-minute walk finishes the warm-up.", mapQuery: "Verve Coffee Roasters 1540 Pacific Ave Santa Cruz CA" },
+      { emoji: "🍩", name: "Ferrell's Donuts", note: "Westside institution, open 24 hours — because dawn-patrol swimmers keep weird schedules.", mapQuery: "Ferrell's Donuts 2227 Mission St Santa Cruz CA" }
+    ];
+
+    const rewardLabels = [
+      "You've earned it",
+      "Post-swim thaw",
+      "Reward station",
+      "Core temp restoration",
+      "Now go warm up"
+    ];
+
+    const mapsUrl = q => "https://maps.google.com/?q=" + encodeURIComponent(q);
 
     // verdict copy per tier
     const verdicts = {
@@ -464,10 +495,18 @@
         fmtTime(e.time) + "</span>"
       ).join("");
 
+      const reward = rand(rewards);
+      document.getElementById("rewardLabel").textContent = rand(rewardLabels) + " " + reward.emoji;
+      const rewardLink = document.getElementById("rewardName");
+      rewardLink.textContent = reward.name;
+      rewardLink.href = mapsUrl(reward.mapQuery);
+      document.getElementById("rewardNote").textContent = reward.note;
+
       document.getElementById("funNote").textContent = rand(funNotes);
       document.getElementById("report").style.display = "flex";
 
       currentReport = {
+        reward: reward,
         verdict: wordEl.textContent,
         checkedAt: fmtTime(now),
         waterF: Math.round(waterF),
@@ -493,6 +532,9 @@
         "🌊 Swell " + r.waveFt + " ft @ " + r.wavePeriod + "s from the " + r.waveDir,
         "💨 Wind " + r.windMph + " mph " + r.windDir,
         ...(r.nextTide ? ["🌗 Tide " + r.tide + " — next: " + r.nextTide] : []),
+        "",
+        r.reward.emoji + " After: " + r.reward.name,
+        mapsUrl(r.reward.mapQuery),
         "",
         "https://atodorova-5678.github.io/Swim/"
       ].join("\n");
